@@ -1,0 +1,55 @@
+// Canonical KMP Core Public API Baseline v1.0.0
+// Changes to this baseline require a documented SemVer decision.
+
+dev.shushant.tasklens.core.ScheduledWork
+    val id: String
+    val platformId: String?
+    val name: String?
+    val type: TaskType
+    val scheduler: SchedulerType
+    val submittedAt: Instant?
+    val earliestBeginAt: Instant?
+    val periodic: Boolean
+    val metadata: Map<String, String>
+
+dev.shushant.tasklens.core.ExecutionAttempt
+    val attemptId: String
+    val taskId: String
+    val attemptNumber: Int
+    val startedAt: Instant?
+    val endedAt: Instant?
+    val outcome: AttemptOutcome?
+    val platformReason: PlatformReason?
+    val evidenceIds: List<String>
+
+dev.shushant.tasklens.core.TaskLensEvent
+    val id: String
+    val taskId: String?
+    val attemptId: String?
+    val timestamp: Instant
+    val sequenceNumber: Long
+    val type: EventType
+    val source: EventSource
+    val severity: EventSeverity
+    val attributes: Map<String, String>
+    val schemaVersion: Int
+
+dev.shushant.tasklens.core.Diagnosis
+    val id: String
+    val taskId: String
+    val attemptId: String?
+    val ruleId: String
+    val ruleVersion: String
+    val title: String
+    val summary: String
+    val classification: DiagnosisClassification
+    val confidence: DiagnosisConfidence
+    val evidence: List<Evidence>
+    val possibleFactors: List<PossibleFactor>
+    val limitations: List<PlatformLimitation>
+
+dev.shushant.tasklens.diagnosis.DiagnosisRule
+    val id: String
+    val name: String
+    val priority: Int
+    fun evaluate(DiagnosisContext): DiagnosisCandidate?

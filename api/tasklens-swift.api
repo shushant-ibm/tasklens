@@ -1,0 +1,24 @@
+// Swift SDK Public API Baseline v1.0.0
+// Changes to this baseline require a documented SemVer decision.
+
+TaskLens
+    func install(config: TaskLensConfig)
+    func isInstalled() -> Bool
+    func emit(event: TaskLensEvent) async
+    func breadcrumb(title: String, message: String, taskId: String?, attributes: [String: String]) async
+    func show()
+    func hide()
+    func clear() async
+    func export(taskId: String) async throws -> URL
+
+TaskLensBG
+    func register(identifier: String, launchHandler: @escaping (Any) -> Void)
+    func submit(identifier: String, earliestBeginDate: Date?, requiresNetwork: Bool, requiresExternalPower: Bool) throws
+    func complete(task: Any, identifier: String, attemptId: String?, success: Bool)
+    func validateCapabilities(registeredIdentifiers: Set<String>, infoPlistIdentifiers: Set<String>) -> [String]
+    func wrapExpirationHandler(taskIdentifier: String, attemptId: String, userHandler: (@Sendable () -> Void)?) -> (@Sendable () -> Void)
+    func wrapCompletion(taskIdentifier: String, attemptId: String, success: Bool, onComplete: (@Sendable (Bool) -> Void)?)
+    var isLowPowerModeEnabled: Bool { get }
+
+TaskLensURLSession
+    func makeBackgroundSession(identifier: String, delegate: URLSessionDelegate?, eventSink: @escaping (TaskLensEvent) -> Void) -> URLSession

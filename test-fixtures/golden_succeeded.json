@@ -1,0 +1,16 @@
+{
+  "id": "40800000-4000-8080-0000-000000000003",
+  "taskId": "task-fixture-001",
+  "attemptId": "attempt-fixture-001",
+  "timestamp": "2024-01-15T10:00:12Z",
+  "sequenceNumber": 3,
+  "type": "TASK_SUCCEEDED",
+  "source": "WORK_MANAGER",
+  "severity": "INFO",
+  "attributes": {
+    "worker_class": "dev.shushant.tasklens.sample.SampleWorker",
+    "duration_ms": "7000",
+    "output_data_keys": "result_code"
+  },
+  "schemaVersion": 1
+}

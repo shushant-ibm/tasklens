@@ -1,0 +1,18 @@
+{
+  "id": "40800000-4000-8080-0000-000000000011",
+  "taskId": "task-fixture-ios-002",
+  "attemptId": null,
+  "timestamp": "2024-01-15T10:06:00Z",
+  "sequenceNumber": 11,
+  "type": "TASK_REGISTERED",
+  "source": "BG_TASK_SCHEDULER",
+  "severity": "INFO",
+  "attributes": {
+    "bg_task_identifier": "com.example.app.processing",
+    "registered_at": "2024-01-15T10:06:00Z",
+    "launch_deferred": "true",
+    "reason": "system_did_not_invoke",
+    "platform": "ios"
+  },
+  "schemaVersion": 1
+}

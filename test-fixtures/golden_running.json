@@ -1,0 +1,16 @@
+{
+  "id": "40800000-4000-8080-0000-000000000002",
+  "taskId": "task-fixture-001",
+  "attemptId": "attempt-fixture-001",
+  "timestamp": "2024-01-15T10:00:05Z",
+  "sequenceNumber": 2,
+  "type": "TASK_STARTED",
+  "source": "WORK_MANAGER",
+  "severity": "INFO",
+  "attributes": {
+    "worker_class": "dev.shushant.tasklens.sample.SampleWorker",
+    "run_attempt_count": "1",
+    "thread": "androidx.work.DefaultScheduler-worker-1"
+  },
+  "schemaVersion": 1
+}

@@ -1,0 +1,37 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build & Test Android Modules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Core, Storage & Android Unit Tests
+        run: ./gradlew :tasklens-core:test :tasklens-storage:test :tasklens-diagnosis:test :tasklens-export:test :tasklens-android:testDebugUnitTest --stacktrace
+
+      - name: Compile Android Modules
+        run: ./gradlew :tasklens-android:compileDebugKotlin :tasklens-workmanager:compileDebugKotlin :tasklens-ui:compileDebugKotlin :tasklens-kourier:build :tasklens-noop:compileDebugKotlin --stacktrace
+
+      - name: Build Sample App
+        run: ./gradlew :sample-android:assembleDebug --stacktrace

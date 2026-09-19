@@ -1,0 +1,31 @@
+name: Schema & Specification Validation
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-schema:
+    name: Validate Event Schema & Export Formats
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Schema Serialization & Export Tests
+        run: ./gradlew :tasklens-core:test :tasklens-export:test --tests "*Serialization*" --tests "*Export*" --stacktrace

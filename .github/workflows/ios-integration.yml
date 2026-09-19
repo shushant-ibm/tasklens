@@ -1,0 +1,22 @@
+name: iOS Integration & Lifecycle
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  ios-integration:
+    name: iOS End-to-End Runtime & Lifecycle
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run End-to-End iOS Integration Suite
+        run: swift test --filter TaskLensIOSIntegrationTests
+
+      - name: Run High-Concurrency Sequence Tests
+        run: swift test --filter TaskLensConcurrencyTests

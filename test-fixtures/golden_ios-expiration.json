@@ -1,0 +1,18 @@
+{
+  "id": "40800000-4000-8080-0000-000000000010",
+  "taskId": "task-fixture-ios-001",
+  "attemptId": "attempt-fixture-ios-001",
+  "timestamp": "2024-01-15T10:05:00Z",
+  "sequenceNumber": 10,
+  "type": "TASK_EXPIRED",
+  "source": "BG_TASK_SCHEDULER",
+  "severity": "WARNING",
+  "attributes": {
+    "bg_task_identifier": "com.example.app.refresh",
+    "expiration_handler_called": "true",
+    "time_remaining_ms": "0",
+    "attempt_number": "1",
+    "platform": "ios"
+  },
+  "schemaVersion": 1
+}

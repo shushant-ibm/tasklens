@@ -1,0 +1,22 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  swift-test:
+    name: Build & Test Swift Package
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app || true
+
+      - name: Build & Test Swift Modules
+        run: swift test --enable-code-coverage

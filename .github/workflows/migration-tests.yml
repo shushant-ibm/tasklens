@@ -1,0 +1,42 @@
+name: Database Migration Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  android-migration:
+    name: Android SQLite Migration (v1 -> v2)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Android Non-Destructive Migration Tests
+        run: ./gradlew :tasklens-android:testDebugUnitTest --tests "dev.shushant.tasklens.android.storage.AndroidMigrationTest" --stacktrace
+
+  ios-migration:
+    name: iOS SQLite Migration (v1 -> v2)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Swift Non-Destructive Migration Tests
+        run: swift test --filter SQLiteMigrationTests

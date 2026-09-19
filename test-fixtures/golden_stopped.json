@@ -1,0 +1,16 @@
+{
+  "id": "40800000-4000-8080-0000-000000000005",
+  "taskId": "task-fixture-003",
+  "attemptId": "attempt-fixture-003",
+  "timestamp": "2024-01-15T10:02:00Z",
+  "sequenceNumber": 5,
+  "type": "TASK_STOPPED",
+  "source": "WORK_MANAGER",
+  "severity": "WARNING",
+  "attributes": {
+    "worker_class": "dev.shushant.tasklens.sample.SampleWorker",
+    "stop_reason": "CONSTRAINT_NOT_MET",
+    "elapsed_ms": "1200"
+  },
+  "schemaVersion": 1
+}

@@ -1,0 +1,17 @@
+{
+  "id": "40800000-4000-8080-0000-000000000006",
+  "taskId": "task-fixture-004",
+  "attemptId": "attempt-fixture-004a",
+  "timestamp": "2024-01-15T10:03:00Z",
+  "sequenceNumber": 6,
+  "type": "TASK_RETRY_REQUESTED",
+  "source": "WORK_MANAGER",
+  "severity": "WARNING",
+  "attributes": {
+    "worker_class": "dev.shushant.tasklens.sample.SampleWorker",
+    "run_attempt_count": "1",
+    "next_run_delay_ms": "30000",
+    "backoff_policy": "EXPONENTIAL"
+  },
+  "schemaVersion": 1
+}

@@ -1,0 +1,16 @@
+{
+  "id": "40800000-4000-8080-0000-000000000001",
+  "taskId": "task-fixture-001",
+  "attemptId": "attempt-fixture-001",
+  "timestamp": "2024-01-15T10:00:00Z",
+  "sequenceNumber": 1,
+  "type": "TASK_ENQUEUED",
+  "source": "WORK_MANAGER",
+  "severity": "INFO",
+  "attributes": {
+    "worker_class": "dev.shushant.tasklens.sample.SampleWorker",
+    "queue_name": "default",
+    "constraints": "NETWORK_CONNECTED"
+  },
+  "schemaVersion": 1
+}

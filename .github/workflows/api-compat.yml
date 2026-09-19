@@ -1,0 +1,31 @@
+name: API Compatibility & Boundary Isolation
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  api-integrity:
+    name: Verify Canonical Core & API Boundaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Canonical Core Integrity Tests
+        run: ./gradlew :tasklens-core:test --tests "dev.shushant.tasklens.core.CanonicalCoreIntegrityTest" --stacktrace

@@ -1,0 +1,17 @@
+{
+  "id": "40800000-4000-8080-0000-000000000004",
+  "taskId": "task-fixture-002",
+  "attemptId": "attempt-fixture-002",
+  "timestamp": "2024-01-15T10:01:00Z",
+  "sequenceNumber": 4,
+  "type": "TASK_FAILED",
+  "source": "WORK_MANAGER",
+  "severity": "ERROR",
+  "attributes": {
+    "worker_class": "dev.shushant.tasklens.sample.SampleWorker",
+    "run_attempt_count": "3",
+    "failure_reason": "java.io.IOException: Network unreachable",
+    "duration_ms": "500"
+  },
+  "schemaVersion": 1
+}

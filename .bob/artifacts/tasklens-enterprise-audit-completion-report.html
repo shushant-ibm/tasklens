@@ -1,0 +1,613 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaskLens Enterprise — Completion Report</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 40px 20px 60px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  /* Header */
+  .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 32px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #1f2328; }
+  .header .sub { color: #57606a; font-size: 13px; margin-top: 4px; }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-blue  { background: #dbeafe; color: #1d4ed8; }
+  .badge-gray  { background: #f1f5f9; color: #475569; }
+
+  /* Sections */
+  section { margin-bottom: 36px; }
+  h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2328;
+    border-left: 3px solid #3b82d4;
+    padding-left: 10px;
+    margin-bottom: 14px;
+  }
+  h3 { font-size: 13px; font-weight: 600; color: #1f2328; margin-bottom: 6px; margin-top: 14px; }
+  p { color: #374151; margin-bottom: 8px; }
+
+  /* Summary cards */
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .card {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .card .num { font-size: 26px; font-weight: 700; color: #3b82d4; }
+  .card .lbl { font-size: 11px; color: #57606a; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Phase checklist */
+  .phase-list { list-style: none; }
+  .phase-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+  }
+  .phase-list li:last-child { border-bottom: none; }
+  .check { font-size: 15px; flex-shrink: 0; }
+  .phase-title { font-weight: 600; }
+  .phase-detail { color: #57606a; font-size: 12px; }
+
+  /* Fixes */
+  .fix-item {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .fix-item .fix-title { font-weight: 600; font-size: 13px; color: #1f2328; margin-bottom: 4px; }
+  .fix-item .fix-file {
+    font-family: "SFMono-Regular", "Consolas", monospace;
+    font-size: 11px;
+    color: #7c5cd8;
+    background: #f0ebff;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  .fix-item p { font-size: 13px; color: #374151; margin: 0; }
+
+  /* Test results */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+  }
+  tbody td {
+    border: 1px solid #e5e7eb;
+    padding: 7px 12px;
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) td { background: #fafbfc; }
+  .pass { color: #15803d; font-weight: 600; }
+  .mono { font-family: "SFMono-Regular", "Consolas", monospace; font-size: 11.5px; }
+
+  /* Build output */
+  .build-box {
+    background: #0f172a;
+    color: #86efac;
+    font-family: "SFMono-Regular", "Consolas", monospace;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 16px 18px;
+    line-height: 1.7;
+  }
+  .build-box .warn { color: #fbbf24; }
+  .build-box .dim  { color: #64748b; }
+
+  /* Project tree */
+  .tree {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 16px 18px;
+    font-family: "SFMono-Regular", "Consolas", monospace;
+    font-size: 11.5px;
+    line-height: 1.75;
+    color: #1f2328;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .tree .dir  { color: #1d4ed8; font-weight: 600; }
+  .tree .edit { color: #7c5cd8; }
+  .tree .test { color: #15803d; }
+  .tree .spec { color: #c05621; }
+
+  /* Module deps */
+  .dep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dep-card {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .dep-card .dep-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .dep-card .dep-desc { font-size: 12px; color: #57606a; margin-bottom: 6px; }
+  .dep-card .dep-deps { font-size: 11.5px; font-family: monospace; color: #374151; }
+  .dep-highlight { border-left: 3px solid #3b82d4; }
+  .dep-noop { border-left: 3px solid #7c5cd8; }
+  .dep-test { border-left: 3px solid #15803d; }
+
+  /* Warning note */
+  .warn-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: #78350f;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid #e5e7eb;
+    margin-top: 48px;
+    padding-top: 14px;
+    text-align: center;
+    font-size: 12px;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  
+  <div class="header">
+    <h1>TaskLens Enterprise — Audit &amp; Completion Report</h1>
+    <div class="sub">Comprehensive audit, validation, and end-to-end completion per <code>specs/TASKLENS_ENTERPRISE_KMP_COMPLETION_SPEC.md</code></div>
+    <div class="badge-row">
+      <span class="badge badge-green">✓ BUILD SUCCESSFUL</span>
+      <span class="badge badge-green">✓ 12 / 12 Tests Pass</span>
+      <span class="badge badge-blue">475 Gradle Tasks</span>
+      <span class="badge badge-gray">Kotlin 2.4.10 · AGP 9.4 · JVM 21</span>
+    </div>
+  </div>
+
+  
+  <section>
+    <h2>Executive Summary</h2>
+    <p>A five-phase audit was performed on the TaskLens Enterprise KMP SDK. All modules were inspected against the completion spec, three blocking issues were identified and fixed, and the full build was verified clean with every unit test passing.</p>
+    <div class="summary-grid">
+      <div class="card"><div class="num">5</div><div class="lbl">Phases</div></div>
+      <div class="card"><div class="num">3</div><div class="lbl">Fixes Applied</div></div>
+      <div class="card"><div class="num">475</div><div class="lbl">Tasks Built</div></div>
+      <div class="card"><div class="num">12</div><div class="lbl">Tests Pass</div></div>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Phase Completion</h2>
+    <ul class="phase-list">
+      <li>
+        <span class="check">✅</span>
+        <div>
+          <div class="phase-title">Phase 1 — Specification Analysis &amp; Gap Assessment</div>
+          <div class="phase-detail">Full read of TASKLENS_ENTERPRISE_KMP_COMPLETION_SPEC.md. All required modules, APIs, and constraints catalogued. Gaps against the running codebase identified.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✅</span>
+        <div>
+          <div class="phase-title">Phase 2 — Validation &amp; Code Audit</div>
+          <div class="phase-detail">All 13 modules inspected at source level. Public API surfaces, noop parity, module dependency boundaries, serialisation compatibility, and git staging state verified.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✅</span>
+        <div>
+          <div class="phase-title">Phase 3 — End-to-End Implementation of Missing Features</div>
+          <div class="phase-detail">Three blocking defects fixed (see Fix Log below). No functional behaviour changes — only correctness repairs.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✅</span>
+        <div>
+          <div class="phase-title">Phase 4 — Testing, Verification &amp; Build Validation</div>
+          <div class="phase-detail"><code>./gradlew build -PskipSamples</code> → BUILD SUCCESSFUL in 53 s. All 12 unit tests pass across 4 suites. One pre-existing compiler warning (non-blocking) noted.</div>
+        </div>
+      </li>
+      <li>
+        <span class="check">✅</span>
+        <div>
+          <div class="phase-title">Phase 5 — Final Delivery &amp; Structured Report</div>
+          <div class="phase-detail">This document.</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  
+  <section>
+    <h2>Fix Log (3 Issues Resolved)</h2>
+
+    <div class="fix-item">
+      <div class="fix-title">Fix 1 — Wrongly Staged Deleted File (Circular Dependency Risk)</div>
+      <div class="fix-file">tasklens-workmanager/src/main/kotlin/.../workmanager/WorkerTracing.kt</div>
+      <p>This file was staged in git (<code>AD</code> status) but had already been deleted on disk. If committed, it would have re-introduced <code>WorkerTracing.kt</code> inside <code>tasklens-workmanager</code>, which would have created a circular dependency. The correct location is <code>tasklens-android/…/android/WorkerTracing.kt</code>. Fixed via <code>git restore --staged</code>.</p>
+    </div>
+
+    <div class="fix-item">
+      <div class="fix-title">Fix 2 — Noop Config Parity: 4 Boolean Defaults Wrong</div>
+      <div class="fix-file">tasklens-noop/src/main/kotlin/.../android/TaskLens.kt</div>
+      <p>Per AGENTS.md, <code>tasklens-noop</code> must mirror the exact API of <code>tasklens-android</code>. Four boolean constructor parameters in the noop <code>TaskLensConfig</code> had default values of <code>false</code> when the real implementation defaults them to <code>true</code>: <code>captureEnvironment</code>, <code>enableKourierBridge</code>, <code>autoObserveWorkManager</code>, <code>diagnosticsEnabled</code>. All four corrected to <code>true</code>.</p>
+    </div>
+
+    <div class="fix-item">
+      <div class="fix-title">Fix 3 — Compile Error: Duplicate Class Name <code>PlatformLimitation</code></div>
+      <div class="fix-file">tasklens-core/src/main/kotlin/.../core/PlatformLimitations.kt</div>
+      <p>Two classes named <code>PlatformLimitation</code> existed in different files within <code>tasklens-core</code>: the canonical data class in <code>Diagnosis.kt</code> (public API) and an internal runtime class in <code>PlatformLimitations.kt</code>. The internal class was renamed to <code>ObservedPlatformLimitation</code>. No external callers referenced the renamed type — confirmed by grep across all modules.</p>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Build Result</h2>
+    <div class="build-box">
+      <span class="dim">$ ./gradlew build -PskipSamples</span><br /><br />
+      BUILD SUCCESSFUL in 53s<br />
+      475 actionable tasks: 462 executed, 13 up-to-date<br /><br />
+      <span class="warn">w: [tasklens-workmanager] WorkManagerAdapter.kt:74:17</span><br />
+      <span class="warn">  Condition 'currentState != null' is always 'true'</span><br />
+      <span class="dim">  (pre-existing warning — not introduced by this session)</span>
+    </div>
+    <div class="warn-box" style="margin-top:10px">
+      The single compiler warning on <code>WorkManagerAdapter.kt:74</code> existed before this session began and is non-blocking. It does not affect correctness or API surface.
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Test Results — 12 / 12 Passing</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Suite</th>
+          <th>Test Name</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="4" class="mono">CoreTests</td>
+          <td class="mono">testEventSerializationAndSequence</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testDefaultRedactor</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testCorrelationEngineAttemptReconstruction</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testTimelineBuilder</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td rowspan="4" class="mono">DiagnosisTests</td>
+          <td class="mono">testBlockedByNetworkDiagnosis</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testPlatformStopReasonDiagnosis</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testTaskExpiredDiagnosis</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testRetryRequestedDiagnosis</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td rowspan="3" class="mono">StorageTests</td>
+          <td class="mono">testStoreSaveAndQuery</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testAttemptAndEventStorage</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">testRetentionPolicy</td>
+          <td class="pass">PASS</td>
+        </tr>
+        <tr>
+          <td class="mono">ExportTests</td>
+          <td class="mono">testExportToZip</td>
+          <td class="pass">PASS</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  
+  <section>
+    <h2>Module Dependency Overview</h2>
+    <div class="dep-grid">
+      <div class="dep-card dep-highlight">
+        <div class="dep-name">tasklens-core</div>
+        <div class="dep-desc">Pure JVM — no android.* / androidx.* imports allowed. Cross-platform contract.</div>
+        <div class="dep-deps">deps: kotlinx-serialization, kotlinx-datetime</div>
+      </div>
+      <div class="dep-card dep-highlight">
+        <div class="dep-name">tasklens-storage</div>
+        <div class="dep-desc">In-memory and SQLite store interfaces. JVM-safe.</div>
+        <div class="dep-deps">deps: tasklens-core</div>
+      </div>
+      <div class="dep-card dep-highlight">
+        <div class="dep-name">tasklens-diagnosis</div>
+        <div class="dep-desc">Rule engine, EvidenceBuilder, 4 diagnosis rules.</div>
+        <div class="dep-deps">deps: tasklens-core</div>
+      </div>
+      <div class="dep-card dep-highlight">
+        <div class="dep-name">tasklens-export</div>
+        <div class="dep-desc">Zip export, HTML report generator, manifest.</div>
+        <div class="dep-deps">deps: tasklens-core, tasklens-storage</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">tasklens-android</div>
+        <div class="dep-desc">Main Android entry point. Exposes api() to host apps.</div>
+        <div class="dep-deps">api: tasklens-core, tasklens-workmanager<br />impl: tasklens-storage, tasklens-diagnosis, tasklens-export, tasklens-ui</div>
+      </div>
+      <div class="dep-card dep-noop">
+        <div class="dep-name">tasklens-noop</div>
+        <div class="dep-desc">Zero-overhead release stub. Stands alone — does NOT depend on tasklens-android. Must mirror every public API manually.</div>
+        <div class="dep-deps">deps: (none)</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">tasklens-workmanager</div>
+        <div class="dep-desc">WorkManager observer + stop reason mapping.</div>
+        <div class="dep-deps">deps: tasklens-core, WorkManager</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">tasklens-ui · tasklens-kourier · tasklens-foreground · tasklens-alarm · tasklens-jobscheduler</div>
+        <div class="dep-desc">Feature add-ons, all consumed via tasklens-android.</div>
+        <div class="dep-deps">deps: tasklens-core (+ platform APIs)</div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Full Project Source Tree</h2>
+    <p style="font-size:12px;color:#57606a;margin-bottom:8px">Build folders, <code>.gradle</code>, <code>.git</code>, <code>.kotlin</code>, <code>.bob</code>, and <code>.build</code> excluded. <span style="color:#7c5cd8;font-weight:600">Purple</span> = edited this session. <span style="color:#15803d;font-weight:600">Green</span> = test files.</p>
+    <div class="tree"><span class="dir">tasklens/</span>
+├── AGENTS.md
+├── Package.swift
+├── README.md
+├── build.gradle.kts
+├── gradle.properties
+├── gradlew / gradlew.bat
+├── local.properties
+├── settings.gradle.kts
+├── version.properties
+│
+├── <span class="dir">gradle/</span>
+│   ├── gradle-daemon-jvm.properties
+│   ├── libs.versions.toml
+│   └── wrapper/
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+│
+├── <span class="spec">specs/</span>
+│   ├── SPEC.md
+│   └── <span class="spec">TASKLENS_ENTERPRISE_KMP_COMPLETION_SPEC.md</span>   ← driving spec
+│
+├── <span class="dir">docs/</span>
+│   ├── ANDROID.md
+│   ├── API_STABILITY.md
+│   ├── ARCHITECTURE.md
+│   ├── DIAGNOSIS_ENGINE.md
+│   ├── EXPORT_FORMAT.md
+│   ├── IOS.md
+│   ├── KOURIER_INTEGRATION.md
+│   ├── PRIVACY.md
+│   ├── ROADMAP.md
+│   └── adr/
+│       ├── ADR-001.md  ADR-002.md  ADR-003.md  ADR-004.md  ADR-005.md
+│       └── ADR-006.md  ADR-007.md  ADR-008.md  ADR-009.md  ADR-010.md
+│
+├── <span class="dir">test-fixtures/</span>
+│   ├── golden_enqueued.json
+│   ├── golden_expired.json
+│   ├── golden_failed.json
+│   ├── golden_network_blocked.json
+│   ├── golden_retry.json
+│   ├── golden_running.json
+│   ├── golden_stopped.json
+│   └── golden_succeeded.json
+│
+├── <span class="dir">.github/workflows/</span>
+│   ├── android-ci.yml
+│   ├── ios-ci.yml
+│   └── schema-tests.yml
+│
+├── <span class="dir">Sources/</span>   (Swift / iOS)
+│   ├── TaskLens/TaskLens.swift
+│   ├── TaskLensBGTasks/TaskLensBG.swift
+│   ├── TaskLensCore/
+│   │   ├── Diagnosis.swift
+│   │   ├── Events.swift
+│   │   ├── Evidence.swift
+│   │   ├── Models.swift
+│   │   ├── Redactor.swift
+│   │   └── Timeline.swift
+│   ├── TaskLensDiagnosis/
+│   │   ├── DiagnosisEngine.swift
+│   │   ├── DiagnosisRule.swift
+│   │   └── Rules.swift
+│   ├── TaskLensKourierBridge/TaskLensKourierBridge.swift
+│   ├── TaskLensNoop/TaskLensNoop.swift
+│   ├── TaskLensStorage/TaskLensStore.swift
+│   ├── TaskLensUI/TaskFeedView.swift
+│   └── TaskLensURLSession/TaskLensURLSession.swift
+│
+├── Tests/TaskLensTests/TaskLensTests.swift
+│
+├── <span class="dir">sample-android/</span>   (excluded from CI via -PskipSamples)
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/.../sample/
+│       ├── MainActivity.kt
+│       ├── SampleApp.kt
+│       └── workers/SampleWorkers.kt
+│
+├── <span class="dir">sample-ios/</span>
+│   ├── ContentView.swift
+│   ├── TaskLensLabApp.swift
+│   └── Info.plist
+│
+├── <span class="dir">tasklens-core/</span>   ← pure JVM, no android.* allowed
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/kotlin/.../core/
+│       │   ├── Clock.kt
+│       │   ├── CorrelationEngine.kt
+│       │   ├── Diagnosis.kt                 (canonical PlatformLimitation data class)
+│       │   ├── Events.kt
+│       │   ├── Evidence.kt
+│       │   ├── HealthState.kt
+│       │   ├── Logger.kt
+│       │   ├── Models.kt
+│       │   ├── NetworkTelemetryBridge.kt
+│       │   ├── <span class="edit">PlatformLimitations.kt</span>   ← EDITED: renamed internal class
+│       │   ├── Redactor.kt
+│       │   └── Timeline.kt
+│       └── test/kotlin/.../core/
+│           └── <span class="test">CoreTests.kt</span>             ← 4 tests PASS
+│
+├── <span class="dir">tasklens-storage/</span>
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/kotlin/.../storage/
+│       │   ├── InMemoryTaskLensStore.kt
+│       │   └── TaskLensStore.kt
+│       └── test/kotlin/.../storage/
+│           └── <span class="test">StorageTests.kt</span>          ← 3 tests PASS
+│
+├── <span class="dir">tasklens-diagnosis/</span>
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/kotlin/.../diagnosis/
+│       │   ├── DefaultDiagnosisEngine.kt
+│       │   ├── DiagnosisRule.kt
+│       │   ├── EvidenceBuilder.kt
+│       │   └── rules/Rules.kt
+│       └── test/kotlin/.../diagnosis/
+│           └── <span class="test">DiagnosisTests.kt</span>        ← 4 tests PASS
+│
+├── <span class="dir">tasklens-android/</span>   ← main Android entry point
+│   ├── build.gradle.kts
+│   ├── consumer-rules.pro
+│   └── src/main/kotlin/.../android/
+│       ├── TaskLens.kt
+│       ├── TaskLensConfig.kt              (booleans default true — source of truth)
+│       ├── WorkerTracing.kt               ← correct location
+│       ├── collectors/Collectors.kt
+│       └── storage/AndroidSqliteTaskLensStore.kt
+│
+├── <span class="dir">tasklens-noop/</span>   ← zero-overhead release stub, no deps
+│   ├── build.gradle.kts
+│   ├── consumer-rules.pro
+│   └── src/main/kotlin/.../android/
+│       └── <span class="edit">TaskLens.kt</span>                  ← EDITED: fixed 4 boolean defaults
+│
+├── <span class="dir">tasklens-workmanager/</span>
+│   ├── build.gradle.kts
+│   ├── consumer-rules.pro
+│   └── src/main/kotlin/.../workmanager/
+│       ├── WorkManagerAdapter.kt          (w: line 74, pre-existing warning)
+│       └── WorkManagerStopReasons.kt
+│
+├── <span class="dir">tasklens-export/</span>
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/kotlin/.../export/
+│       │   ├── DefaultTaskLensExporter.kt
+│       │   ├── ExportManifest.kt
+│       │   ├── HtmlReportGenerator.kt
+│       │   └── TaskLensExporter.kt
+│       └── test/kotlin/.../export/
+│           └── <span class="test">ExportTests.kt</span>           ← 1 test PASS
+│
+├── <span class="dir">tasklens-kourier/</span>
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/.../kourier/
+│       └── KourierTelemetryBridge.kt
+│
+├── <span class="dir">tasklens-ui/</span>
+│   ├── build.gradle.kts
+│   ├── consumer-rules.pro
+│   └── src/main/kotlin/.../ui/
+│       ├── TaskLensActivity.kt
+│       ├── TaskLensBridge.kt
+│       ├── TaskLensNavGraph.kt
+│       ├── TaskLensViewModel.kt
+│       ├── components/
+│       │   ├── DiagnosisComponent.kt
+│       │   ├── EnvironmentComponent.kt
+│       │   ├── RawEventsComponent.kt
+│       │   └── TimelineComponent.kt
+│       ├── screens/
+│       │   ├── DiagnosisCard.kt
+│       │   ├── EventTimeline.kt
+│       │   ├── SettingsScreen.kt
+│       │   ├── TaskDetailScreen.kt
+│       │   ├── TaskFeedScreen.kt
+│       │   └── TaskLensDashboard.kt
+│       └── theme/
+│           ├── TaskLensUiTheme.kt
+│           └── Theme.kt
+│
+├── <span class="dir">tasklens-foreground/</span>
+│   └── src/main/kotlin/.../foreground/
+│       ├── ForegroundServiceAdapter.kt
+│       └── TaskLensForegroundService.kt
+│
+├── <span class="dir">tasklens-alarm/</span>
+│   └── src/main/kotlin/.../alarm/
+│       └── AlarmManagerAdapter.kt
+│
+└── <span class="dir">tasklens-jobscheduler/</span>
+    └── src/main/kotlin/.../jobscheduler/
+        └── JobSchedulerAdapter.kt
+</div>
+  </section>
+
+  <div class="footer">Made with IBM Bob</div>
+</div>
+</body>
+</html>

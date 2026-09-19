@@ -1,0 +1,61 @@
+name: Release & Packaging
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release-android:
+    name: Build & Package Android Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build All Release AARs & JARs
+        run: ./gradlew -PskipSamples assembleRelease --stacktrace
+
+      - name: Run Full Test Suite
+        run: ./gradlew -PskipSamples test --stacktrace
+
+      - name: Publish Artifacts & Generate CycloneDX SBOM and SHA-256 Checksums
+        run: |
+          ./gradlew -PskipSamples publishToMavenLocal --stacktrace
+          ./gradlew generateCycloneDxSbom --stacktrace
+          ./gradlew generateReleaseChecksums --stacktrace
+
+      - name: Archive Release Artifacts & Checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasklens-release-provenance
+          path: |
+            build/distributions/SHA256SUMS.txt
+            build/reports/sbom/bom.cyclonedx.json
+            tasklens-*/build/outputs/aar/*.aar
+            tasklens-*/build/libs/*.jar
+
+  release-ios:
+    name: Verify Swift Package Release
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build & Test Swift Package
+        run: swift test -c release

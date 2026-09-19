@@ -1,0 +1,17 @@
+{
+  "id": "40800000-4000-8080-0000-000000000007",
+  "taskId": "task-fixture-005",
+  "attemptId": "attempt-fixture-005",
+  "timestamp": "2024-01-15T10:04:00Z",
+  "sequenceNumber": 7,
+  "type": "TASK_EXPIRED",
+  "source": "JOB_SCHEDULER",
+  "severity": "ERROR",
+  "attributes": {
+    "job_id": "42",
+    "scheduled_at": "2024-01-15T09:00:00Z",
+    "deadline_ms": "3600000",
+    "elapsed_since_schedule_ms": "3601000"
+  },
+  "schemaVersion": 1
+}

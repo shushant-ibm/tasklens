@@ -1,0 +1,18 @@
+{
+  "id": "40800000-4000-8080-0000-000000000012",
+  "taskId": null,
+  "attemptId": null,
+  "timestamp": "2024-01-15T10:07:00Z",
+  "sequenceNumber": 12,
+  "type": "CLOCK_SHIFT_DETECTED",
+  "source": "APPLICATION",
+  "severity": "WARNING",
+  "attributes": {
+    "delta_ms": "-86400000",
+    "previous_timestamp": "2024-01-15T10:07:00Z",
+    "current_timestamp": "2024-01-14T10:07:00Z",
+    "direction": "backward",
+    "platform": "android"
+  },
+  "schemaVersion": 1
+}

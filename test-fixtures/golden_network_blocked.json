@@ -1,0 +1,17 @@
+{
+  "id": "40800000-4000-8080-0000-000000000008",
+  "taskId": "task-fixture-006",
+  "attemptId": null,
+  "timestamp": "2024-01-15T10:05:00Z",
+  "sequenceNumber": 8,
+  "type": "NETWORK_CHANGED",
+  "source": "SYSTEM_BROADCAST",
+  "severity": "WARNING",
+  "attributes": {
+    "network_type": "NONE",
+    "previous_network_type": "WIFI",
+    "metered": "false",
+    "reason": "AIRPLANE_MODE"
+  },
+  "schemaVersion": 1
+}

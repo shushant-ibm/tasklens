@@ -1,0 +1,34 @@
+public final class dev.shushant.tasklens.android.TaskLens {
+    public static final dev.shushant.tasklens.android.TaskLens INSTANCE;
+    public final boolean isInstalled();
+    public final void install(android.app.Application, dev.shushant.tasklens.android.TaskLensConfig);
+    public final void install(android.app.Application, kotlin.jvm.functions.Function1);
+    public final void emit(dev.shushant.tasklens.core.TaskLensEvent);
+    public final void breadcrumb(java.lang.String, java.lang.String, java.lang.String, java.util.Map);
+    public final java.lang.Object withCorrelation(java.lang.String, kotlin.jvm.functions.Function1, kotlin.coroutines.Continuation);
+    public final void show(android.content.Context);
+    public final void showUI(android.content.Context);
+    public final void hide();
+    public final void hideUI();
+    public final void clear();
+    public final java.lang.Object export(java.lang.String, java.io.File, kotlin.coroutines.Continuation);
+    public final dev.shushant.tasklens.core.HealthState health();
+    public final dev.shushant.tasklens.core.TaskLensConfig getConfig();
+}
+
+public final class dev.shushant.tasklens.android.TaskLensConfig {
+    public final dev.shushant.tasklens.storage.RetentionPolicy getRetentionPolicy();
+    public final boolean getCaptureWorkerPayloads();
+    public final boolean getCaptureEnvironment();
+    public final boolean getEnableKourierBridge();
+    public final boolean getAutoObserveWorkManager();
+    public final boolean getDiagnosticsEnabled();
+    public final dev.shushant.tasklens.core.TaskLensRedactor getRedactor();
+    public final dev.shushant.tasklens.core.TaskLensLogger getLogger();
+}
+
+public final class dev.shushant.tasklens.android.TaskLensConfig$Builder {
+    public final dev.shushant.tasklens.android.TaskLensConfig$Builder retentionDays(int);
+    public final dev.shushant.tasklens.android.TaskLensConfig$Builder retention(int, int);
+    public final dev.shushant.tasklens.android.TaskLensConfig build();
+}

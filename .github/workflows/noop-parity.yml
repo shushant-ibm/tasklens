@@ -1,0 +1,35 @@
+name: No-Op Parity & Zero Overhead
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  noop-validation:
+    name: Validate No-Op Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Compile and Test No-Op Module
+        run: ./gradlew :tasklens-noop:build :tasklens-noop:assembleRelease --stacktrace
+
+      - name: Check No-Op AAR Size
+        run: |
+          ls -lh tasklens-noop/build/outputs/aar/ || true
