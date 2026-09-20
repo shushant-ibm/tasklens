@@ -12,6 +12,10 @@ jobs:
   security-audit:
     name: Secrets & Vulnerability Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -22,9 +26,6 @@ jobs:
       - name: Run TruffleHog Secrets Scan
         uses: trufflesecurity/trufflehog@main
         with:
-          path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
           extra_args: --only-verified
 
       - name: Set up JDK 21
@@ -38,6 +39,9 @@ jobs:
 
       - name: Run Gradle Dependency Verification
         run: ./gradlew -PskipSamples dependencies --stacktrace
+
+      - name: Run License Policy Verification
+        run: ./gradlew verifyLicensePolicy --stacktrace
 
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
@@ -60,5 +64,6 @@ jobs:
       - name: Upload Security SARIF Report
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: 'trivy-results.sarif'

@@ -27,6 +27,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Publish to Maven Local
+        run: ./gradlew publishToMavenLocal -PskipSamples --stacktrace
+
       - name: Run Core, Storage & Android Unit Tests
         run: ./gradlew :tasklens-core:test :tasklens-storage:test :tasklens-diagnosis:test :tasklens-export:test :tasklens-android:testDebugUnitTest --stacktrace
 

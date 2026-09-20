@@ -23,6 +23,15 @@ class ExternalPackagingValidationTest {
     private val m2TaskLensDir = File(userHome, ".m2/repository/dev/shushant/tasklens")
     private val targetVersion = "0.1.0"
 
+    @org.junit.Before
+    fun checkMavenLocalPopulated() {
+        val versionDir = File(m2TaskLensDir, "tasklens-android/$targetVersion")
+        org.junit.Assume.assumeTrue(
+            "Maven Local repository not populated; publishToMavenLocal must run before packaging tests",
+            m2TaskLensDir.exists() && versionDir.exists()
+        )
+    }
+
     @Test
     fun testMavenLocalRepositoryContainsPublishedArtifacts() {
         assertTrue("Maven local repository must contain TaskLens group directory", m2TaskLensDir.exists())

@@ -30,14 +30,14 @@ jobs:
       - name: Build All Release AARs & JARs
         run: ./gradlew -PskipSamples assembleRelease --stacktrace
 
-      - name: Run Full Test Suite
-        run: ./gradlew -PskipSamples test --stacktrace
-
       - name: Publish Artifacts & Generate CycloneDX SBOM and SHA-256 Checksums
         run: |
           ./gradlew -PskipSamples publishToMavenLocal --stacktrace
           ./gradlew generateCycloneDxSbom --stacktrace
           ./gradlew generateReleaseChecksums --stacktrace
+
+      - name: Run Full Test Suite
+        run: ./gradlew -PskipSamples test --stacktrace
 
       - name: Archive Release Artifacts & Checksums
         uses: actions/upload-artifact@v4
