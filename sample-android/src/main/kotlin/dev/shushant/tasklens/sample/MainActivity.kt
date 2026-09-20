@@ -57,19 +57,43 @@ import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
 import dev.shushant.tasklens.android.TaskLens
+import dev.shushant.tasklens.core.AttemptOutcome
+import dev.shushant.tasklens.core.DefaultCorrelationEngine
+import dev.shushant.tasklens.core.EventSeverity
+import dev.shushant.tasklens.core.EventSource
+import dev.shushant.tasklens.core.EventType
+import dev.shushant.tasklens.core.ExecutionAttempt
+import dev.shushant.tasklens.core.ScheduledWork
+import dev.shushant.tasklens.core.SchedulerType
+import dev.shushant.tasklens.core.TaskLensEvent
+import dev.shushant.tasklens.core.TaskType
+import dev.shushant.tasklens.diagnosis.DefaultDiagnosisEngine
+import dev.shushant.tasklens.diagnosis.DiagnosisContext
 import dev.shushant.tasklens.sample.workers.FatalFailureWorker
 import dev.shushant.tasklens.sample.workers.FlakyRetryWorker
 import dev.shushant.tasklens.sample.workers.LongRunningWorker
 import dev.shushant.tasklens.sample.workers.NetworkRequiredWorker
 import dev.shushant.tasklens.sample.workers.SyncWorker
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
 
 class MainActivity : ComponentActivity() {
 
+    companion object {
+        var lastEnqueuedTaskId: String? = null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleIntent(intent)
         setContent {
             MaterialTheme {
                 Surface(
@@ -79,6 +103,230 @@ class MainActivity : ComponentActivity() {
                     TaskLensLabScreen()
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val action = intent?.getStringExtra("action") ?: return
+        Log.i("TaskLensHarness", "Handling action: $action")
+        val wm = WorkManager.getInstance(this)
+
+        when (action) {
+            "enqueue_success" -> {
+                val req = OneTimeWorkRequestBuilder<SyncWorker>().build()
+                lastEnqueuedTaskId = req.id.toString()
+                wm.enqueue(req)
+                Log.i("TaskLensHarness", "Enqueued SyncWorker: ${req.id}")
+            }
+            "enqueue_wifi" -> {
+                val req = OneTimeWorkRequestBuilder<NetworkRequiredWorker>()
+                    .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build())
+                    .build()
+                lastEnqueuedTaskId = req.id.toString()
+                wm.enqueue(req)
+                Log.i("TaskLensHarness", "Enqueued NetworkRequiredWorker: ${req.id}")
+            }
+            "enqueue_charging" -> {
+                val req = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(Constraints.Builder().setRequiresCharging(true).build())
+                    .build()
+                lastEnqueuedTaskId = req.id.toString()
+                wm.enqueue(req)
+                Log.i("TaskLensHarness", "Enqueued Charging Worker: ${req.id}")
+            }
+            "enqueue_flaky" -> {
+                val req = OneTimeWorkRequestBuilder<FlakyRetryWorker>()
+                    .setBackoffCriteria(BackoffPolicy.LINEAR, 5, TimeUnit.SECONDS)
+                    .build()
+                lastEnqueuedTaskId = req.id.toString()
+                wm.enqueue(req)
+                Log.i("TaskLensHarness", "Enqueued FlakyRetryWorker: ${req.id}")
+            }
+            "enqueue_fatal" -> {
+                val req = OneTimeWorkRequestBuilder<FatalFailureWorker>().build()
+                lastEnqueuedTaskId = req.id.toString()
+                wm.enqueue(req)
+                Log.i("TaskLensHarness", "Enqueued FatalFailureWorker: ${req.id}")
+            }
+            "enqueue_long" -> {
+                val req = OneTimeWorkRequestBuilder<LongRunningWorker>()
+                    .addTag("cancellable_group")
+                    .build()
+                lastEnqueuedTaskId = req.id.toString()
+                wm.enqueue(req)
+                Log.i("TaskLensHarness", "Enqueued LongRunningWorker: ${req.id}")
+            }
+            "cancel_long" -> {
+                wm.cancelAllWorkByTag("cancellable_group")
+                Log.i("TaskLensHarness", "Cancelled LongRunningWorker")
+            }
+            "export" -> {
+                val targetFile = File(getExternalFilesDir(null), "android_pixel7pro_sample.tasklens")
+                lifecycleScope.launch {
+                    val taskId = intent.getStringExtra("task_id") ?: lastEnqueuedTaskId ?: "48d6cf1a-7f30-4f9c-a7cc-8d794651c223"
+                    try {
+                        TaskLens.export(taskId, targetFile)
+                        Log.i("TaskLensExport", "EXPORT_SUCCESS: ${targetFile.absolutePath} size=${targetFile.length()}")
+                    } catch (t: Throwable) {
+                        Log.e("TaskLensExport", "EXPORT_FAILED: ${t.message}", t)
+                    }
+                }
+            }
+            "benchmark" -> {
+                runPhysicalBenchmarks()
+            }
+        }
+    }
+
+    private fun runPhysicalBenchmarks() {
+        lifecycleScope.launch(Dispatchers.Default) {
+            Log.i("TaskLensBenchmark", "=== STARTING TASKLENS PHYSICAL BENCHMARKS ===")
+
+            // 1. Idle Memory
+            System.gc()
+            val rt = Runtime.getRuntime()
+            val idleMemoryMb = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024)
+            Log.i("TaskLensBenchmark", "METRIC: idle_memory_mb=$idleMemoryMb")
+
+            // 2. Event Ingestion Latency (1,000 emits)
+            val count = 1000
+            val latenciesMicros = LongArray(count)
+            for (i in 0 until 50) {
+                TaskLens.emit(
+                    TaskLensEvent(
+                        id = "warmup-$i",
+                        taskId = "bench-task",
+                        type = EventType.CUSTOM_BREADCRUMB,
+                        source = EventSource.APPLICATION
+                    )
+                )
+            }
+            for (i in 0 until count) {
+                val nanos = measureNanoTime {
+                    TaskLens.emit(
+                        TaskLensEvent(
+                            id = "bench-evt-$i",
+                            taskId = "bench-task",
+                            type = EventType.CUSTOM_BREADCRUMB,
+                            source = EventSource.APPLICATION,
+                            attributes = mapOf("iteration" to i.toString())
+                        )
+                    )
+                }
+                latenciesMicros[i] = nanos / 1000L
+            }
+            latenciesMicros.sort()
+            val p50 = latenciesMicros[(count * 0.50).toInt()]
+            val p95 = latenciesMicros[(count * 0.95).toInt()]
+            val p99 = latenciesMicros[(count * 0.99).toInt()]
+            Log.i("TaskLensBenchmark", "METRIC: ingestion_p50_us=$p50, ingestion_p95_us=$p95, ingestion_p99_us=$p99")
+
+            // 3. Timeline Reconstruction (1k, 10k, 100k)
+            val correlation = DefaultCorrelationEngine()
+            val baseTime = kotlin.time.Instant.fromEpochMilliseconds(1710000000000L)
+
+            // 1k
+            val events1k = (1..1000).map { i ->
+                TaskLensEvent(
+                    id = "evt-1k-$i",
+                    taskId = "task-1k",
+                    attemptId = "att-1k-1",
+                    timestamp = kotlin.time.Instant.fromEpochMilliseconds(baseTime.toEpochMilliseconds() + i * 10L),
+                    sequenceNumber = i.toLong(),
+                    type = if (i == 1) EventType.TASK_STARTED else if (i == 1000) EventType.TASK_SUCCEEDED else EventType.CUSTOM_BREADCRUMB,
+                    source = EventSource.WORK_MANAGER
+                )
+            }
+            correlation.reconstructAttempts("task-1k", events1k) // warm up
+            val time1k = measureTimeMillis {
+                correlation.reconstructAttempts("task-1k", events1k)
+            }
+            Log.i("TaskLensBenchmark", "METRIC: timeline_reconstruction_1k_ms=$time1k")
+
+            // 10k
+            val events10k = (1..10000).map { i ->
+                TaskLensEvent(
+                    id = "evt-10k-$i",
+                    taskId = "task-10k",
+                    attemptId = "att-10k-1",
+                    timestamp = kotlin.time.Instant.fromEpochMilliseconds(baseTime.toEpochMilliseconds() + i * 5L),
+                    sequenceNumber = i.toLong(),
+                    type = if (i == 1) EventType.TASK_STARTED else if (i == 10000) EventType.TASK_SUCCEEDED else EventType.CUSTOM_BREADCRUMB,
+                    source = EventSource.WORK_MANAGER
+                )
+            }
+            val time10k = measureTimeMillis {
+                correlation.reconstructAttempts("task-10k", events10k)
+            }
+            Log.i("TaskLensBenchmark", "METRIC: timeline_reconstruction_10k_ms=$time10k")
+
+            // 100k
+            val events100k = (1..100000).map { i ->
+                TaskLensEvent(
+                    id = "evt-100k-$i",
+                    taskId = "task-100k",
+                    attemptId = "att-100k-1",
+                    timestamp = kotlin.time.Instant.fromEpochMilliseconds(baseTime.toEpochMilliseconds() + i * 1L),
+                    sequenceNumber = i.toLong(),
+                    type = if (i == 1) EventType.TASK_STARTED else if (i == 100000) EventType.TASK_SUCCEEDED else EventType.CUSTOM_BREADCRUMB,
+                    source = EventSource.WORK_MANAGER
+                )
+            }
+            val time100k = measureTimeMillis {
+                correlation.reconstructAttempts("task-100k", events100k)
+            }
+            Log.i("TaskLensBenchmark", "METRIC: timeline_reconstruction_100k_ms=$time100k")
+
+            // 4. Diagnosis Engine Execution (1k, 10k)
+            val diagnosisEngine = DefaultDiagnosisEngine()
+            val dummyTask = ScheduledWork(
+                id = "diag-task",
+                name = "DiagBenchmarkWorker",
+                type = TaskType.WORKER,
+                scheduler = SchedulerType.WORK_MANAGER
+            )
+            val dummyAttempt = ExecutionAttempt(
+                attemptId = "att-1",
+                taskId = dummyTask.id,
+                attemptNumber = 1,
+                outcome = AttemptOutcome.FAILED
+            )
+            val diagContext1k = DiagnosisContext(dummyTask, listOf(dummyAttempt), events1k)
+            diagnosisEngine.diagnose(diagContext1k) // warm up
+            val diagTime1k = measureTimeMillis {
+                diagnosisEngine.diagnose(diagContext1k)
+            }
+            Log.i("TaskLensBenchmark", "METRIC: diagnosis_execution_1k_ms=$diagTime1k")
+
+            val diagContext10k = DiagnosisContext(dummyTask, listOf(dummyAttempt), events10k)
+            val diagTime10k = measureTimeMillis {
+                diagnosisEngine.diagnose(diagContext10k)
+            }
+            Log.i("TaskLensBenchmark", "METRIC: diagnosis_execution_10k_ms=$diagTime10k")
+
+            // 5. Export Latency
+            val targetFile = File(getExternalFilesDir(null), "android_pixel7pro_sample.tasklens")
+            val exportTimeMs = measureTimeMillis {
+                try {
+                    val taskId = lastEnqueuedTaskId ?: "bench-task"
+                    TaskLens.export(taskId, targetFile)
+                } catch (t: Throwable) {
+                    Log.w("TaskLensBenchmark", "Export threw: ${t.message}")
+                }
+            }
+            Log.i("TaskLensBenchmark", "METRIC: export_latency_ms=$exportTimeMs, export_bytes=${targetFile.length()}")
+
+            // 6. UI Memory
+            val uiMemoryMb = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024)
+            Log.i("TaskLensBenchmark", "METRIC: ui_active_memory_mb=$uiMemoryMb")
+
+            Log.i("TaskLensBenchmark", "=== TASKLENS PHYSICAL BENCHMARKS COMPLETE ===")
         }
     }
 }

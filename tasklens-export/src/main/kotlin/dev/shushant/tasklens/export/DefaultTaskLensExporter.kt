@@ -80,6 +80,8 @@ class DefaultTaskLensExporter(
 
                 add(buildJsonObject {
                     put("id", attempt.attemptId)
+                    put("attempt_id", attempt.attemptId)
+                    put("attemptId", attempt.attemptId)
                     put("task_id", attempt.taskId)
                     put("attempt_number", attempt.attemptNumber)
                     put("outcome", attempt.outcome?.name ?: "UNKNOWN")

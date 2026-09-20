@@ -62,6 +62,8 @@ public enum TaskLensArchiveExporter {
             }
             return [
                 "id": a.attemptId,
+                "attempt_id": a.attemptId,
+                "attemptId": a.attemptId,
                 "task_id": a.taskId,
                 "attempt_number": a.attemptNumber,
                 "outcome": a.outcome?.rawValue ?? "UNKNOWN",

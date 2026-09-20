@@ -170,3 +170,47 @@ tasks.register("generateReleaseChecksums") {
         println("Generated SHA256SUMS.txt with ${lines.size} verified artifact checksums at: ${out.absolutePath}")
     }
 }
+
+tasks.register("verifyLicensePolicy") {
+    group = "verification"
+    description = "Scans all dependencies and CycloneDX SBOM entries against enterprise open source license policies."
+
+    dependsOn("generateCycloneDxSbom")
+
+    doLast {
+        val sbomFile = layout.buildDirectory.file("reports/sbom/bom.cyclonedx.json").get().asFile
+        if (!sbomFile.exists()) {
+            throw GradleException("SBOM file not found at ${sbomFile.absolutePath}. Run generateCycloneDxSbom first.")
+        }
+
+        val allowedLicenses = setOf("Apache-2.0", "MIT", "BSD-2-Clause", "BSD-3-Clause", "ISC")
+        val prohibitedLicenses = setOf("GPL-2.0", "GPL-3.0", "AGPL-3.0", "SSPL-1.0", "CommonsClause")
+
+        val json = groovy.json.JsonSlurper().parse(sbomFile) as Map<*, *>
+        val components = json["components"] as List<*>
+
+        var checkedCount = 0
+        components.forEach { comp ->
+            val compMap = comp as Map<*, *>
+            val name = compMap["name"] as String
+            val licenses = compMap["licenses"] as? List<*> ?: emptyList<Any>()
+
+            licenses.forEach { lic ->
+                val licMap = lic as Map<*, *>
+                val licenseObj = licMap["license"] as? Map<*, *>
+                val id = licenseObj?.get("id") as? String ?: "Unknown"
+
+                if (prohibitedLicenses.contains(id)) {
+                    throw GradleException("PROHIBITED LICENSE DETECTED in $name: $id")
+                }
+                if (!allowedLicenses.contains(id)) {
+                    println("WARNING: Non-standard allowed license for $name: $id")
+                }
+                checkedCount++
+            }
+        }
+
+        println("LICENSE POLICY SCAN PASSED: $checkedCount components verified against enterprise policy (0 prohibited).")
+    }
+}
+

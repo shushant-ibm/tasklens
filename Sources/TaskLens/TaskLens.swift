@@ -1,10 +1,10 @@
 import Foundation
-import TaskLensCore
+@_exported import TaskLensCore
 import TaskLensStorage
 import TaskLensDiagnosis
-import TaskLensBGTasks
+@_exported import TaskLensBGTasks
 import TaskLensURLSession
-import TaskLensUI
+@_exported import TaskLensUI
 
 public struct TaskLensConfig {
     public var retentionPolicy: RetentionPolicy

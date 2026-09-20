@@ -80,7 +80,7 @@ class DefaultWorkManagerAdapter(
             workObserver = observer
 
             // Must observe on main thread for LiveData
-            kotlinx.coroutines.runBlocking(Dispatchers.Main) {
+            runOnMainThread {
                 liveData.observeForever(observer)
             }
 
@@ -213,13 +213,21 @@ class DefaultWorkManagerAdapter(
             try {
                 // Use the cached LiveData instance so removeObserver targets the
                 // exact same object that observeForever was called on.
-                kotlinx.coroutines.runBlocking(Dispatchers.Main) {
+                runOnMainThread {
                     workInfoLiveData?.removeObserver(observer)
                 }
             } catch (_: Throwable) {}
         }
         workObserver = null
         workInfoLiveData = null
+    }
+
+    private fun runOnMainThread(block: () -> Unit) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            block()
+        } else {
+            android.os.Handler(android.os.Looper.getMainLooper()).post(block)
+        }
     }
 
     override suspend fun snapshot(): List<WorkSnapshot> {

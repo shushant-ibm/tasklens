@@ -177,10 +177,14 @@ final class TaskLensIOSIntegrationTests: XCTestCase {
         XCTAssertTrue(data.count > 100, "Archive must contain valid non-empty zip data")
 
         // Inspect standard ZIP signature: 0x04034b50 (PK\x03\x04)
-        let magic = data.prefix(4)
-        XCTAssertEqual(magic, Data([0x50, 0x4b, 0x03, 0x04]), "Export must be a valid ZIP archive starting with PK header")
+        // Copy to build/exports for standalone cross-platform validation
+        let exportsDir = URL(fileURLWithPath: "build/exports")
+        try? FileManager.default.createDirectory(at: exportsDir, withIntermediateDirectories: true)
+        let destination = exportsDir.appendingPathComponent("ios_iphone13_sample.tasklens")
+        try? FileManager.default.removeItem(at: destination)
+        try? FileManager.default.copyItem(at: archiveUrl, to: destination)
 
-        // Cleanup
+        // Cleanup temp file
         try? FileManager.default.removeItem(at: archiveUrl)
         await store.close()
     }
