@@ -31,8 +31,13 @@ jobs:
       - name: Run Android Instrumented Tests on Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
-          target: google_apis
+          api-level: 31
+          target: default
           arch: arm64-v8a
-          profile: pixel_6
-          script: ./gradlew :sample-android:connectedDebugAndroidTest --stacktrace || true
+          profile: pixel
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-boot-timeout: 600
+          script: |
+            adb devices
+            ./gradlew :sample-android:connectedDebugAndroidTest --stacktrace || true
