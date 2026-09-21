@@ -1,0 +1,21 @@
+==================================================
+Validating TaskLens Archive: evidence/iphone_13/ios_iphone13_sample.tasklens
+==================================================
+[+] Archive Size: 2206 bytes
+[+] SHA-256: eb8f679de9d793b16b1ca10385e689d3d8350b6dab081ef45f63cf506dfc0190
+[+] Found 11 archive entries: ['manifest.json', 'task.json', 'attempts.json', 'timeline.json', 'diagnosis.json', 'evidence.json', 'environment.json', 'limitations.json', 'events.json', 'device.json', 'README.html']
+[+] All 8 canonical archive entries are present.
+[+] manifest.json verified:
+    - Schema Version: 1
+    - Task ID: com.example.export.task
+    - Platform: ios
+    - App Version: 1.0.0
+    - Exported At: 1789901008074
+[+] task.json verified (Task: ExportableTask, Scheduler: None)
+[+] attempts.json verified (0 attempts recorded)
+[+] events.json verified (1 events recorded, attribute types validated)
+[+] timeline.json verified (1 timeline items recorded)
+[+] diagnosis.json verified (1 diagnoses recorded)
+[+] device.json verified (0 device properties recorded: [])
+[+] README.html verified (265 characters)
+[✓] ARCHIVE PORTABILITY VALIDATION PASSED: evidence/iphone_13/ios_iphone13_sample.tasklens

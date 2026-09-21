@@ -29,6 +29,15 @@ allprojects {
 subprojects {
     apply(plugin = "maven-publish")
 
+    configure<org.gradle.api.publish.PublishingExtension> {
+        repositories {
+            maven {
+                name = "releaseRepo"
+                url = uri(rootProject.layout.buildDirectory.dir("repo"))
+            }
+        }
+    }
+
     plugins.withId("com.android.library") {
         configure<com.android.build.api.dsl.LibraryExtension> {
             publishing {

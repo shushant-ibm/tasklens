@@ -1,0 +1,21 @@
+==================================================
+Validating TaskLens Archive: evidence/pixel_7_pro/android_pixel7pro_sample.tasklens
+==================================================
+[+] Archive Size: 6021 bytes
+[+] SHA-256: 47434c9d17077c14ae4e4e3e77ed2a3d89f3049106ded6b3b99bce661224b481
+[+] Found 11 archive entries: ['manifest.json', 'task.json', 'attempts.json', 'timeline.json', 'diagnosis.json', 'evidence.json', 'environment.json', 'limitations.json', 'events.json', 'device.json', 'README.html']
+[+] All 8 canonical archive entries are present.
+[+] manifest.json verified:
+    - Schema Version: 1
+    - Task ID: 32a814aa-ac77-40b8-9975-fa85bca5ddd2
+    - Platform: android
+    - App Version: 
+    - Exported At: 1789900929836
+[+] task.json verified (Task: dev.shushant.tasklens.sample.workers.FlakyRetryWorker, Scheduler: None)
+[+] attempts.json verified (5 attempts recorded)
+[+] events.json verified (22 events recorded, attribute types validated)
+[+] timeline.json verified (22 timeline items recorded)
+[+] diagnosis.json verified (0 diagnoses recorded)
+[+] device.json verified (5 device properties recorded: ['model', 'manufacturer', 'android_version', 'sdk_int', 'brand'])
+[+] README.html verified (344 characters)
+[✓] ARCHIVE PORTABILITY VALIDATION PASSED: evidence/pixel_7_pro/android_pixel7pro_sample.tasklens

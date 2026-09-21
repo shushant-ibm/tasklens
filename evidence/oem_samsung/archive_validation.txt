@@ -1,0 +1,21 @@
+==================================================
+Validating TaskLens Archive: evidence/oem_samsung/android_samsung_sample.tasklens
+==================================================
+[+] Archive Size: 4913 bytes
+[+] SHA-256: 901acf544c76b5cbd28717f45e298ed9aeca39dc4b98d85b62a51475fe91c01e
+[+] Found 11 archive entries: ['manifest.json', 'task.json', 'attempts.json', 'timeline.json', 'diagnosis.json', 'evidence.json', 'environment.json', 'limitations.json', 'events.json', 'device.json', 'README.html']
+[+] All 8 canonical archive entries are present.
+[+] manifest.json verified:
+    - Schema Version: 1
+    - Task ID: 9614a51d-a05d-4aea-9347-1a987a23365b
+    - Platform: android
+    - App Version: 
+    - Exported At: 1789910394990
+[+] task.json verified (Task: dev.shushant.tasklens.sample.workers.FlakyRetryWorker, Scheduler: None)
+[+] attempts.json verified (7 attempts recorded)
+[+] events.json verified (19 events recorded, attribute types validated)
+[+] timeline.json verified (19 timeline items recorded)
+[+] diagnosis.json verified (0 diagnoses recorded)
+[+] device.json verified (5 device properties recorded: ['model', 'manufacturer', 'android_version', 'sdk_int', 'brand'])
+[+] README.html verified (344 characters)
+[✓] ARCHIVE PORTABILITY VALIDATION PASSED: evidence/oem_samsung/android_samsung_sample.tasklens
